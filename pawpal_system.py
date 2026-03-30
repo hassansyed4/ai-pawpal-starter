@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List
+from datetime import date, timedelta
+from typing import Dict, List, Optional
 
 
 @dataclass
@@ -10,12 +11,36 @@ class Task:
 
     description: str
     time_minutes: int
+    due_time: str
     frequency: str = "daily"
     completed: bool = False
+    due_date: date = field(default_factory=date.today)
 
-    def mark_complete(self) -> None:
-        """Mark the task as completed."""
+    def mark_complete(self) -> Optional["Task"]:
+        """Mark the task complete and create the next recurring task if needed."""
         self.completed = True
+
+        if self.frequency.lower() == "daily":
+            return Task(
+                description=self.description,
+                time_minutes=self.time_minutes,
+                due_time=self.due_time,
+                frequency=self.frequency,
+                completed=False,
+                due_date=self.due_date + timedelta(days=1),
+            )
+
+        if self.frequency.lower() == "weekly":
+            return Task(
+                description=self.description,
+                time_minutes=self.time_minutes,
+                due_time=self.due_time,
+                frequency=self.frequency,
+                completed=False,
+                due_date=self.due_date + timedelta(weeks=1),
+            )
+
+        return None
 
     def reset(self) -> None:
         """Reset the task to incomplete."""
@@ -77,41 +102,95 @@ class Owner:
 
 @dataclass
 class Scheduler:
-    """Retrieves and organizes tasks across the owner's pets."""
+    """Retrieves, filters, sorts, and organizes tasks across the owner's pets."""
 
     owner: Owner
     daily_plan: List[dict] = field(default_factory=list)
 
     def collect_tasks(self) -> List[dict]:
-        """Collect all incomplete tasks from the owner's pets."""
+        """Collect all tasks from the owner's pets."""
         collected_tasks: List[dict] = []
         for pet in self.owner.pets:
             for task in pet.get_tasks():
-                if not task.completed:
-                    collected_tasks.append(
-                        {
-                            "pet_name": pet.name,
-                            "species": pet.species,
-                            "task": task,
-                        }
-                    )
+                collected_tasks.append(
+                    {
+                        "pet_name": pet.name,
+                        "species": pet.species,
+                        "task": task,
+                    }
+                )
         return collected_tasks
 
+    def sort_by_time(self, tasks: List[dict]) -> List[dict]:
+        """Sort tasks by due time in HH:MM format."""
+        return sorted(tasks, key=lambda item: item["task"].due_time)
+
+    def filter_tasks(
+        self,
+        completed: Optional[bool] = None,
+        pet_name: Optional[str] = None,
+    ) -> List[dict]:
+        """Filter tasks by completion status or pet name."""
+        tasks = self.collect_tasks()
+
+        if completed is not None:
+            tasks = [item for item in tasks if item["task"].completed == completed]
+
+        if pet_name:
+            tasks = [item for item in tasks if item["pet_name"].lower() == pet_name.lower()]
+
+        return tasks
+
     def generate_plan(self) -> List[dict]:
-        """Generate a daily plan within the owner's available time."""
-        collected_tasks = self.collect_tasks()
-        collected_tasks.sort(key=lambda item: item["task"].time_minutes)
+        """Generate a daily plan from incomplete tasks sorted by due time."""
+        tasks = self.filter_tasks(completed=False)
+        sorted_tasks = self.sort_by_time(tasks)
 
         self.daily_plan = []
         used_time = 0
 
-        for item in collected_tasks:
+        for item in sorted_tasks:
             task_time = item["task"].time_minutes
             if used_time + task_time <= self.owner.available_time_minutes:
                 self.daily_plan.append(item)
                 used_time += task_time
 
         return self.daily_plan
+
+    def detect_conflicts(self, tasks: Optional[List[dict]] = None) -> List[str]:
+        """Detect simple time conflicts where two tasks share the same due time."""
+        if tasks is None:
+            tasks = self.collect_tasks()
+
+        warnings: List[str] = []
+        seen_times: Dict[str, List[str]] = {}
+
+        for item in tasks:
+            due_time = item["task"].due_time
+            label = f"{item['task'].description} for {item['pet_name']}"
+
+            if due_time not in seen_times:
+                seen_times[due_time] = [label]
+            else:
+                for existing in seen_times[due_time]:
+                    warnings.append(
+                        f"Conflict warning: '{existing}' and '{label}' are both scheduled at {due_time}."
+                    )
+                seen_times[due_time].append(label)
+
+        return warnings
+
+    def mark_task_complete(self, pet_name: str, task_description: str) -> bool:
+        """Mark a task complete and create the next recurring instance when needed."""
+        for pet in self.owner.pets:
+            if pet.name.lower() == pet_name.lower():
+                for task in pet.tasks:
+                    if task.description.lower() == task_description.lower() and not task.completed:
+                        new_task = task.mark_complete()
+                        if new_task is not None:
+                            pet.add_task(new_task)
+                        return True
+        return False
 
     def explain_plan(self) -> str:
         """Explain how the current daily plan was created."""
@@ -120,9 +199,9 @@ class Scheduler:
 
         total_time = sum(item["task"].time_minutes for item in self.daily_plan)
         return (
-            f"The schedule includes {len(self.daily_plan)} task(s) "
-            f"that fit within {self.owner.available_time_minutes} available minutes. "
-            f"Tasks were selected from all pets and ordered by shortest duration first."
+            f"The plan includes {len(self.daily_plan)} task(s) within "
+            f"{self.owner.available_time_minutes} available minutes. "
+            f"Incomplete tasks were sorted by due time and added until the time limit was reached."
         )
 
     def get_remaining_time(self) -> int:

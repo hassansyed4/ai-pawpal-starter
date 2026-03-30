@@ -27,12 +27,19 @@
 **a. Constraints and priorities**
 
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
+- My scheduler considers several basic constraints: available time, task completion status, and task due time. It only includes incomplete tasks in the daily plan, sorts them by due time, and then adds tasks until the owner's available time limit is reached.
+
 - How did you decide which constraints mattered most?
+- I decided these constraints mattered most because they are the most practical for a pet care app. A pet owner first needs to know which tasks still need to be done, when they are due, and whether they fit into the time available for the day. I kept the logic simple so the schedule is easy to understand and test.
+
 
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+- One tradeoff my scheduler makes is that conflict detection only checks for exact matching times, such as two tasks both scheduled at 09:00. It does not yet detect overlapping durations, such as a 09:00–09:30 task conflicting with a 09:15–09:45 task.
+
 - Why is that tradeoff reasonable for this scenario?
+- This tradeoff is reasonable for this scenario because it keeps the logic lightweight, readable, and easy to debug while still providing useful warnings. For an early version of PawPal+, exact-time conflict detection is enough to show the idea of scheduling conflicts without making the system too complex.
 
 ---
 
