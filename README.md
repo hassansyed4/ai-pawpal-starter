@@ -59,3 +59,36 @@ To run the automated test suite:
 
 ```bash
 python -m pytest
+
+- The tests cover key PawPal+ behaviors, including:
+
+task completion
+adding tasks to a pet
+sorting tasks in chronological order
+recurring daily task creation
+filtering tasks by pet name
+detecting scheduling conflicts
+handling pets with no tasks
+
+- Confidence Level: ★★★★☆ (4/5)
+
+- I am confident that the core scheduling logic works correctly because the main features are covered by automated tests. A higher confidence level would require more advanced tests for overlapping time ranges, UI behavior, and additional edge cases.
+
+## Features
+
+- Add and manage multiple pets
+- Add care tasks with duration, due time, and frequency
+- Generate a daily schedule based on available time
+- Sort tasks by due time
+- Filter tasks by pet name or completion status
+- Detect simple task conflicts when two tasks share the same due time
+- Automatically create the next recurring task for daily and weekly activities
+
+## 📸 Demo (Image)
+<a href="/course_images/ai110/streamlit_app.png" target="_blank"><img src='/course_images/ai110/streamlit_app.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.
+
+![PawPal App](streamlit_app.png)
+
+## Overview
+
+PawPal+ is a pet care scheduling app that helps owners organize pet tasks, manage recurring activities, and build a smarter daily plan.
