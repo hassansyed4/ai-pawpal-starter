@@ -86,7 +86,6 @@ handling pets with no tasks
 - Automatically create the next recurring task for daily and weekly activities
 
 ## 📸 Demo (Image)
-<a href="/course_images/ai110/streamlit_app.png" target="_blank"><img src='/course_images/ai110/streamlit_app.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.
 
 ![PawPal App](streamlit_app.png)
 
