@@ -59,6 +59,7 @@ To run the automated test suite:
 
 ```bash
 python -m pytest
+```
 
 - The tests cover key PawPal+ behaviors, including:
 
