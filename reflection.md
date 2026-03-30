@@ -3,14 +3,22 @@
 ## 1. System Design
 
 **a. Initial design**
+- My initial UML design included four main classes: Owner, Pet, Task, and Scheduler.
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+- The Owner class represents the person using the app. Its responsibility is to store owner information, available time, preferences, and the list of pets.
+
+- The Pet class represents each pet and stores details such as name, species, age, breed, care notes, and the tasks associated with that pet.
+
+- The Task class represents individual care activities like feeding, walking, medication, grooming, or playtime. It holds details such as duration, priority, frequency, category, and completion status.
+
+- The Scheduler class is responsible for collecting tasks from all pets, selecting tasks based on constraints like available time and priority, and generating a daily care plan. It also explains why certain tasks were chosen.
+
+- This design keeps responsibilities separate and makes it easier to implement, test, and extend later.
 
 **b. Design changes**
+- One design change I made was keeping the Scheduler separate from the Pet and Owner classes instead of placing scheduling logic inside Owner. I made this change because scheduling is a separate responsibility and deserves its own class. This makes the design cleaner and easier to test.
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+- I also used Python dataclasses for Pet and Task because they mainly store structured data. This reduced boilerplate code and made the class definitions easier to read.
 
 ---
 
